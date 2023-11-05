@@ -93,11 +93,6 @@ jobs:
           default: true
           profile: minimal
 
-      - name: Use Cross
-        shell: bash
-        run: |
-          cargo install cross
-
       - name: Handle Rust Dependencies Caching
         uses: Swatinem/rust-cache@v2
         with:
@@ -108,7 +103,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --release
+          args: --target ${{ matrix.job.target }} --release
 
       - name: Rename Binary
         if: matrix.job.target != 'x86_64-pc-windows-msvc'
