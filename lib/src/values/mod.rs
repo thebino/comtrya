@@ -159,8 +159,8 @@ impl Debug for Value {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Value::Null => formatter.write_str("Null"),
-            Value::String(string) => write!(formatter, "String({:?})", string),
-            Value::Number(number) => write!(formatter, "Number({})", number),
+            Value::String(string) => write!(formatter, "String({string:?})"),
+            Value::Number(number) => write!(formatter, "Number({number})"),
             Value::List(list) => {
                 formatter.write_str("List ")?;
                 formatter.debug_list().entries(list).finish()
@@ -171,7 +171,7 @@ impl Debug for Value {
 
 impl Debug for Number {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(formatter, "Number({})", self)
+        write!(formatter, "Number({self})")
     }
 }
 
@@ -364,8 +364,7 @@ impl TryFrom<JsonValue> for Value {
                         Some(n) => n.into(),
                         None => {
                             return Err(anyhow::anyhow!(
-                                "Failed converting number {:?} to json.",
-                                number
+                                "Failed converting number {number:?} to json."
                             ))
                         }
                     }
@@ -374,8 +373,7 @@ impl TryFrom<JsonValue> for Value {
                         Some(n) => n.into(),
                         None => {
                             return Err(anyhow::anyhow!(
-                                "Failed converting number {:?} to json.",
-                                number
+                                "Failed converting number {number:?} to json."
                             ))
                         }
                     }
@@ -384,8 +382,7 @@ impl TryFrom<JsonValue> for Value {
                         Some(n) => n.into(),
                         None => {
                             return Err(anyhow::anyhow!(
-                                "Failed converting number {:?} to json.",
-                                number
+                                "Failed converting number {number:?} to json."
                             ))
                         }
                     }

@@ -33,7 +33,7 @@ impl Action for PackageInstall {
 
         // If the provider isn't available, see if we can bootstrap it
         if !provider.available() {
-            if provider.bootstrap(&context).is_empty() {
+            if provider.bootstrap(context).is_empty() {
                 return Err(anyhow!(
                     "Package Provider, {}, isn't available. Skipping action",
                     provider.name()
@@ -55,10 +55,10 @@ impl Action for PackageInstall {
                 }
             }
 
-            atoms.append(&mut provider.bootstrap(&context));
+            atoms.append(&mut provider.bootstrap(context));
         }
 
-        atoms.append(&mut provider.install(&variant, &context)?);
+        atoms.append(&mut provider.install(&variant, context)?);
 
         span.exit();
 
@@ -81,7 +81,7 @@ mod tests {
     - bash
 "#;
 
-        let mut actions: Vec<Actions> = serde_yml::from_str(yaml).unwrap();
+        let mut actions: Vec<Actions> = serde_yaml_ng::from_str(yaml).unwrap();
 
         match actions.pop() {
             Some(Actions::PackageInstall(action)) => {

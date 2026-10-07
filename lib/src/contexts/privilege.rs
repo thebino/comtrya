@@ -2,9 +2,10 @@ use crate::config::Config;
 use crate::contexts::{Context, ContextProvider};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub enum Privilege {
     #[serde(alias = "sudo")]
+    #[default]
     Sudo,
 
     #[serde(alias = "doas")]
@@ -14,12 +15,6 @@ pub enum Privilege {
     Run0,
 }
 
-impl Default for Privilege {
-    fn default() -> Self {
-        Privilege::Sudo
-    }
-}
-
 impl Display for Privilege {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
@@ -27,7 +22,7 @@ impl Display for Privilege {
             Privilege::Doas => "doas".to_string(),
             Privilege::Run0 => "run0".to_string(),
         };
-        write!(f, "{}", str)
+        write!(f, "{str}")
     }
 }
 
@@ -41,12 +36,10 @@ impl<'a> ContextProvider for PrivilegeContextProvider<'a> {
     }
 
     fn get_contexts(&self) -> anyhow::Result<Vec<Context>> {
-        let mut contexts = vec![];
-
-        contexts.push(Context::KeyValueContext(
+        let contexts = vec![Context::KeyValueContext(
             "privilege".to_string(),
             self.config.privilege.to_string().into(),
-        ));
+        )];
 
         Ok(contexts)
     }

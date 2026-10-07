@@ -1,12 +1,13 @@
 use super::FileAction;
 use super::{default_chmod, from_octal};
+#[cfg(unix)]
 use crate::atoms::file::Chown;
 use crate::manifests::Manifest;
 use crate::steps::Step;
 use crate::{actions::Action, contexts::Contexts};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{path::PathBuf, u32};
+use std::path::PathBuf;
 
 #[derive(JsonSchema, Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "file.download")]
@@ -48,7 +49,7 @@ impl Action for FileDownload {
         let path = PathBuf::from(&self.to);
         let parent = path.clone();
 
-        let mut steps = vec![
+        let steps = vec![
             Step {
                 atom: Box::new(DirCreate {
                     path: parent
@@ -83,28 +84,39 @@ impl Action for FileDownload {
         ];
 
         #[cfg(unix)]
-        if let Some(user) = self.owner_user.clone() {
-            if let Some(group) = self.owner_group.clone() {
-                steps.push(Step {
-                    atom: Box::new(Chown {
-                        path: path.clone(),
-                        owner: user.clone(),
-                        group: group.clone(),
-                    }),
-                    initializers: vec![],
-                    finalizers: vec![],
-                })
+        {
+            let mut steps = steps;
+            if let Some(user) = self.owner_user.clone() {
+                if let Some(group) = self.owner_group.clone() {
+                    steps.push(Step {
+                        atom: Box::new(Chown {
+                            path: path.clone(),
+                            owner: user.clone(),
+                            group: group.clone(),
+                        }),
+                        initializers: vec![],
+                        finalizers: vec![],
+                    })
+                }
             }
+
+            Ok(steps)
         }
 
-        Ok(steps)
+        #[cfg(not(unix))]
+        {
+            Ok(steps)
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    #[cfg(unix)]
     use crate::actions::file::download::FileDownload;
-    use crate::actions::{Action, Actions};
+    #[cfg(unix)]
+    use crate::actions::Action;
+    use crate::actions::Actions;
 
     #[test]
     fn it_can_be_deserialized() {
@@ -114,7 +126,7 @@ mod tests {
   to: b
 "#;
 
-        let mut actions: Vec<Actions> = serde_yml::from_str(yaml).unwrap();
+        let mut actions: Vec<Actions> = serde_yaml_ng::from_str(yaml).unwrap();
 
         match actions.pop() {
             Some(Actions::FileDownload(action)) => {
@@ -138,7 +150,7 @@ mod tests {
   owned_by_group: test
 "#;
 
-        let mut actions: Vec<Actions> = serde_yml::from_str(yaml).unwrap();
+        let mut actions: Vec<Actions> = serde_yaml_ng::from_str(yaml).unwrap();
 
         match actions.pop() {
             Some(Actions::FileDownload(action)) => {

@@ -99,14 +99,14 @@ pub fn to_tera(contexts: &Contexts) -> tera::Context {
     context
 }
 
-pub fn to_rhai(context: &Contexts) -> rhai::Scope {
+pub fn to_rhai(context: &Contexts) -> rhai::Scope<'_> {
     let mut scope = Scope::new();
 
     context.iter().for_each(|(m, v)| {
         let dynamic = match rhai::serde::to_dynamic(v) {
             Ok(dynamic) => dynamic,
             Err(error) => {
-                panic!("Failed to convert context value to dynamic: {}", error);
+                panic!("Failed to convert context value to dynamic: {error}");
             }
         };
 

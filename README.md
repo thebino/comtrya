@@ -1,3 +1,7 @@
+> [!IMPORTANT]
+> We couldn't find any new maintainer(s) in the last 2 months and therefore I'll archive comtrya. Feel free to fork it and continue :)
+> Thanks @rawkode and all other maintainers over time for the awesome work!
+
 # Comtrya
 
 ![Comtrya](/Comtrya.gif "Hello")

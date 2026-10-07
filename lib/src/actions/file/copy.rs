@@ -1,6 +1,8 @@
 use super::FileAction;
 use super::{default_chmod, from_octal};
-use crate::atoms::file::{Chown, Decrypt};
+#[cfg(unix)]
+use crate::atoms::file::Chown;
+use crate::atoms::file::Decrypt;
 use crate::manifests::Manifest;
 use crate::steps::Step;
 use crate::tera_functions::register_functions;
@@ -9,7 +11,7 @@ use anyhow::anyhow;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::error::Error as StdError;
-use std::{path::PathBuf, u32};
+use std::path::PathBuf;
 use tera::Tera;
 
 #[derive(JsonSchema, Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -66,14 +68,12 @@ impl Action for FileCopy {
                         Err(err) => match err.source() {
                             Some(source) => {
                                 return Err(anyhow!(
-                                    "Failed to render contents for FileCopy action: {}",
-                                    source
+                                    "Failed to render contents for FileCopy action: {source}"
                                 ));
                             }
                             None => {
                                 return Err(anyhow!(
-                                    "Failed to render contents for FileCopy action: {}",
-                                    err
+                                    "Failed to render contents for FileCopy action: {err}"
                                 ));
                             }
                         },
@@ -85,10 +85,7 @@ impl Action for FileCopy {
                 }
             }
             Err(err) => {
-                return Err(anyhow!(
-                    "Failed to get contents for FileCopy action: {}",
-                    err.to_string()
-                ));
+                return Err(anyhow!("Failed to get contents for FileCopy action: {err}"));
             }
         };
 
@@ -132,7 +129,8 @@ impl Action for FileCopy {
             },
         ];
 
-        let path_clone = path.clone();
+        #[cfg(unix)]
+        let path_for_chown = path.clone();
         if let Some(passphrase) = self.passphrase.to_owned() {
             steps.push(Step {
                 atom: Box::new(Decrypt {
@@ -156,7 +154,7 @@ impl Action for FileCopy {
             if let Some(group) = self.owner_group.clone() {
                 steps.push(Step {
                     atom: Box::new(Chown {
-                        path: path_clone,
+                        path: path_for_chown,
                         owner: user.clone(),
                         group: group.clone(),
                     }),
@@ -183,7 +181,7 @@ mod tests {
   chmod: "0777"
 "#;
 
-        let mut actions: Vec<Actions> = serde_yml::from_str(yaml).unwrap();
+        let mut actions: Vec<Actions> = serde_yaml_ng::from_str(yaml).unwrap();
 
         match actions.pop() {
             Some(Actions::FileCopy(action)) => {
@@ -208,7 +206,7 @@ mod tests {
   owned_by_group: test
 "#;
 
-        let mut actions: Vec<Actions> = serde_yml::from_str(yaml).unwrap();
+        let mut actions: Vec<Actions> = serde_yaml_ng::from_str(yaml).unwrap();
 
         match actions.pop() {
             Some(Actions::FileCopy(action)) => {

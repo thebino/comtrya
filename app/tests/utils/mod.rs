@@ -16,7 +16,7 @@ pub(crate) struct Dir {
 
 impl Dir {
     pub fn run(self, cli: &'static str) -> Assert {
-        let mut comtrya = Command::cargo_bin("comtrya").unwrap();
+        let mut comtrya = Command::new(assert_cmd::cargo::cargo_bin!("comtrya"));
 
         comtrya.current_dir(self.cwd);
 
@@ -39,7 +39,7 @@ pub(crate) fn run(cli: &'static str) -> Assert {
 
 pub(crate) fn cd(path: PathBuf) -> Dir {
     if !path.exists() {
-        panic!("could not 'cd' into non-existing file: {:?}", path);
+        panic!("could not 'cd' into non-existing file: {path:?}");
     }
 
     Dir {

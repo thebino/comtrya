@@ -1,7 +1,7 @@
 name: pull-request
 
 env:
-  MIN_SUPPORTED_RUST_VERSION: "1.77.0"
+  MIN_SUPPORTED_RUST_VERSION: "1.88.0"
 
 on:
   pull_request:
@@ -12,32 +12,27 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: agenthunt/conventional-commit-checker-action@v2.0.0
+      - uses: agenthunt/conventional-commit-checker-action@v2.0.1
         continue-on-error: true
         with:
           pr-body-regex: ".*"
 
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ env.MIN_SUPPORTED_RUST_VERSION }}
-          profile: minimal
           components: clippy,rustfmt
-          override: true
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - run: cargo fmt --all -- --check
 
-      - uses: giraffate/clippy-action@v1
+      - uses: giraffate/clippy-action@v1.0.1
         with:
           reporter: "github-pr-review"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           clippy_flags: --all-features --all-targets
 
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v5.5.2
 
   test:
     name: ${{ matrix.job.os }} (${{ matrix.job.target }})
@@ -58,17 +53,17 @@ jobs:
           #     target: aarch64-unknown-linux-gnu,
           #     use-cross: true,
           #   }
-          - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
           # - {
           #     os: ubuntu-20.04,
           #     target: x86_64-unknown-linux-musl,
           #     use-cross: true,
           #   }
-          - { os: macos-13, target: x86_64-apple-darwin }
-          - { os: macos-14, target: aarch64-apple-darwin }
-          - { os: windows-2022, target: x86_64-pc-windows-msvc }
+          - { os: macos-15-intel, target: x86_64-apple-darwin }
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - shell: bash
         run: |
@@ -83,15 +78,9 @@ jobs:
           echo "PROJECT_MAINTAINER=$(sed -n 's/^authors = \["\(.*\)"\]/\1/p' Cargo.toml)" >> $GITHUB_ENV
           echo "PROJECT_HOMEPAGE=$(sed -n 's/^homepage = "\(.*\)"/\1/p' Cargo.toml)" >> $GITHUB_ENV
 
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
           target: ${{ matrix.job.target }}
-          override: true
-          profile: minimal
 
-      - uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.job.use-cross }}
-          command: test
-          args: --target=${{ matrix.job.target }} ${{ steps.test-options.outputs.CARGO_TEST_OPTIONS}}
+      - run: cargo test --target=${{ matrix.job.target }}

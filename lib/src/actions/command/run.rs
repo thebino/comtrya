@@ -43,7 +43,7 @@ impl Action for RunCommand {
         use crate::atoms::command::Exec;
 
         let privilege_provider =
-            utilities::get_privilege_provider(&contexts).unwrap_or_else(|| "sudo".to_string());
+            utilities::get_privilege_provider(contexts).unwrap_or_else(|| "sudo".to_string());
 
         Ok(vec![Step {
             atom: Box::new(Exec {
@@ -77,7 +77,7 @@ mod tests {
       - hi
 "#;
 
-        let mut actions: Vec<Actions> = serde_yml::from_str(yaml).unwrap();
+        let mut actions: Vec<Actions> = serde_yaml_ng::from_str(yaml).unwrap();
 
         match actions.pop() {
             Some(Actions::CommandRun(action)) => {
@@ -101,7 +101,7 @@ mod tests {
         GOROOT: test
 "#;
 
-        let mut actions: Vec<Actions> = serde_yml::from_str(yaml).unwrap();
+        let mut actions: Vec<Actions> = serde_yaml_ng::from_str(yaml).unwrap();
 
         match actions.pop() {
             Some(Actions::CommandRun(action)) => {

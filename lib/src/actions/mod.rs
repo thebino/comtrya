@@ -104,7 +104,7 @@ where
         match engine.eval_with_scope::<bool>(&mut scope, condition.as_str()) {
             Ok(true) => self.action.plan(manifest, context),
             Ok(false) => Ok(vec![]),
-            Err(error) => Err(anyhow!("Failed execution condition for action: {}", error)),
+            Err(error) => Err(anyhow!("Failed execution condition for action: {error}")),
         }
     }
 }
@@ -252,7 +252,7 @@ impl Display for Actions {
             Actions::Plugin(_) => "plugin",
         };
 
-        write!(f, "{}", name)
+        write!(f, "{name}")
     }
 }
 
@@ -271,7 +271,7 @@ pub struct ActionError {
 impl<E: std::error::Error> From<E> for ActionError {
     fn from(e: E) -> Self {
         ActionError {
-            message: format!("{}", e),
+            message: format!("{e}"),
         }
     }
 }
@@ -301,7 +301,7 @@ actions:
     - where: Debian
       command: halt
 "#;
-        let m: Manifest = serde_yml::from_str(content).unwrap();
+        let m: Manifest = serde_yaml_ng::from_str(content).unwrap();
 
         let action = &m.actions[0];
 

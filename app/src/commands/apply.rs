@@ -47,8 +47,7 @@ impl Apply {
             Some(path) => path,
             None => {
                 return Err(anyhow::anyhow!(
-                    "Manifest location, {:?}, could be resolved",
-                    first_manifest_path
+                    "Manifest location, {first_manifest_path:?}, could be resolved"
                 ))
             }
         };
@@ -60,7 +59,7 @@ impl Apply {
     #[instrument(skip(self, runtime))]
     pub fn status(&self, runtime: &Runtime) -> anyhow::Result<()> {
         let contexts = &runtime.contexts;
-        let manifest_path = self.manifest_path(&runtime)?;
+        let manifest_path = self.manifest_path(runtime)?;
 
         println!("Load manifests from path: {:#?}", manifest_path);
 
@@ -74,7 +73,7 @@ impl Apply {
 
         for (name, manifest) in manifests.iter() {
             table.add_row(vec![
-                Cell::new(format!("{name}")),
+                Cell::new(name.to_string()),
                 Cell::new(format!("{}", manifest.actions.len())),
             ]);
         }
@@ -87,7 +86,7 @@ impl ComtryaCommand for Apply {
     #[instrument(skip(self, runtime))]
     fn execute(&self, runtime: &Runtime) -> anyhow::Result<()> {
         let contexts = &runtime.contexts;
-        let manifest_path = self.manifest_path(&runtime)?;
+        let manifest_path = self.manifest_path(runtime)?;
         let manifests = load(manifest_path, contexts);
 
         // Build DAG
@@ -122,7 +121,7 @@ impl ComtryaCommand for Apply {
                 let (local_dependency_prefix, _) = name.rsplit_once('.').unwrap_or((name, ""));
 
                 let resolved_dependency_name =
-                    dependency.replace("./", format!("{}.", local_dependency_prefix).as_str());
+                    dependency.replace("./", format!("{local_dependency_prefix}.").as_str());
 
                 let m1 = match manifests.get(&resolved_dependency_name) {
                     Some(manifest) => manifest,
